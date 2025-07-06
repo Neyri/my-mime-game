@@ -1,0 +1,45 @@
+runtime: nodejs20
+default_expiration: "1m"
+
+instance_class: F1
+automatic_scaling:
+  min_instances: 0
+  max_instances: 1
+  target_cpu_utilization: 0.65
+  min_pending_latency: automatic
+  max_pending_latency: automatic
+  max_concurrent_requests: 80
+
+# Environment variables
+env_variables:
+  BACKEND_URL: "https://weekend-pacs-backend-okwcrv5xsa-oa.a.run.app/api"
+
+entrypoint: node --experimental-specifier-resolution=node server.js
+
+# Enable health checks
+health_check:
+  enable_health_check: true
+  check_interval_sec: 30
+  timeout_sec: 5
+  healthy_threshold: 2
+  unhealthy_threshold: 2
+
+# Serve static files with correct MIME types
+handlers:
+- url: /static/(.*\.(js|jsx|ts|tsx))$
+  static_files: dist/static/\1
+  upload: dist/static/(.*\.(js|jsx|ts|tsx))$
+  mime_type: application/javascript
+
+- url: /static/(.*\.(css))$
+  static_files: dist/static/\1
+  upload: dist/static/(.*\.(css))$
+  mime_type: text/css
+
+- url: /static/(.*)$
+  static_files: dist/static/\1
+  upload: dist/static/(.*)$
+
+- url: /(.*)$
+  static_files: dist/index.html
+  upload: dist/index.html
