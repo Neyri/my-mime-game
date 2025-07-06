@@ -1,6 +1,6 @@
-# Weekend PACS
+# My Mime Game
 
-A project.
+Code for a mime game where 2 teams battle each other add randomly picked characters and actions.
 
 ## Frontend
 
