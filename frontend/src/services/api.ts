@@ -15,16 +15,19 @@ export interface GameData {
 }
 
 export const api = {
-  async getGameSettings(): Promise<{ totalPlayers: number; timerDuration: number }> {
+  async getGameSettings(): Promise<{ totalPlayers: number; timerDuration: number; numberOfTeams: number }> {
     const response = await fetch(`${API_URL}/game-settings`);
     if (!response.ok) throw new Error('Failed to fetch game settings');
     return response.json();
   },
 
-  async updateGameSettings(settings: { totalPlayers: number; timerDuration: number }): Promise<void> {
+  async updateGameSettings(settings: { totalPlayers: number; timerDuration: number; numberOfTeams: number }): Promise<void> {
     const response = await fetch(`${API_URL}/game-settings`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer admin123'
+      },
       body: JSON.stringify(settings)
     });
     if (!response.ok) throw new Error('Failed to update game settings');

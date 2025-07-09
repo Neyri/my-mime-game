@@ -7,11 +7,14 @@ interface AdminProps {
   setTotalPlayers: (n: number) => void;
   timerDuration: number;
   setTimerDuration: (n: number) => void;
+  numberOfTeams: number;
+  setNumberOfTeams: (n: number) => void;
 }
 
-const Admin: React.FC<AdminProps> = ({ onLogout, totalPlayers, setTotalPlayers, timerDuration, setTimerDuration }) => {
+const Admin: React.FC<AdminProps> = ({ onLogout, totalPlayers, setTotalPlayers, timerDuration, setTimerDuration, numberOfTeams, setNumberOfTeams }) => {
   const [localTotalPlayers, setLocalTotalPlayers] = useState(totalPlayers);
   const [localTimerDuration, setLocalTimerDuration] = useState(timerDuration);
+  const [localNumberOfTeams, setLocalNumberOfTeams] = useState(numberOfTeams);
 
   const [teams, setTeams] = useState<Team[]>([]);
   // localTotalPlayers and localTimerDuration are synced with backend settings
@@ -33,22 +36,27 @@ const Admin: React.FC<AdminProps> = ({ onLogout, totalPlayers, setTotalPlayers, 
       const settings = await api.getGameSettings();
       setLocalTotalPlayers(settings.totalPlayers);
       setLocalTimerDuration(settings.timerDuration);
+      setLocalNumberOfTeams(settings.numberOfTeams);
       setTotalPlayers(settings.totalPlayers);
       setTimerDuration(settings.timerDuration);
+      setNumberOfTeams(settings.numberOfTeams);
     } catch (error) {
       alert('Failed to fetch game settings');
     }
   };
 
-  const handleSettingsChange = async (field: 'totalPlayers' | 'timerDuration', value: number) => {
+  const handleSettingsChange = async (field: 'totalPlayers' | 'timerDuration' | 'numberOfTeams', value: number) => {
     const newSettings = {
       totalPlayers: field === 'totalPlayers' ? value : localTotalPlayers,
-      timerDuration: field === 'timerDuration' ? value : localTimerDuration
+      timerDuration: field === 'timerDuration' ? value : localTimerDuration,
+      numberOfTeams: field === 'numberOfTeams' ? value : localNumberOfTeams
     };
     setLocalTotalPlayers(newSettings.totalPlayers);
     setLocalTimerDuration(newSettings.timerDuration);
+    setLocalNumberOfTeams(newSettings.numberOfTeams);
     setTotalPlayers(newSettings.totalPlayers);
     setTimerDuration(newSettings.timerDuration);
+    setNumberOfTeams(newSettings.numberOfTeams);
     try {
       await api.updateGameSettings(newSettings);
     } catch (error) {
@@ -174,6 +182,17 @@ const Admin: React.FC<AdminProps> = ({ onLogout, totalPlayers, setTotalPlayers, 
               max={600}
               value={localTimerDuration}
               onChange={e => handleSettingsChange('timerDuration', Number(e.target.value))}
+              className="w-32 px-2 py-1 border rounded-lg"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Number of Teams</label>
+            <input
+              type="number"
+              min={2}
+              max={10}
+              value={localNumberOfTeams}
+              onChange={e => handleSettingsChange('numberOfTeams', Number(e.target.value))}
               className="w-32 px-2 py-1 border rounded-lg"
             />
           </div>
