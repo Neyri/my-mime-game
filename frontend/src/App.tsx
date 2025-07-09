@@ -11,14 +11,17 @@ import AdminLogin from './components/Admin/AdminLogin';
 function App() {
   const [totalPlayers, setTotalPlayers] = useState(6);
   const [timerDuration, setTimerDuration] = useState(60);
+  const [numberOfTeams, setNumberOfTeams] = useState(2);
 
   // Fetch settings from backend on mount
   React.useEffect(() => {
     const fetchSettings = async () => {
       try {
         const settings = await api.getGameSettings();
+        console.log(settings);
         setTotalPlayers(settings.totalPlayers);
         setTimerDuration(settings.timerDuration);
+        setNumberOfTeams(settings.numberOfTeams);
       } catch (e) {
         console.warn('Could not fetch game settings from backend:', e);
       }
@@ -26,31 +29,23 @@ function App() {
     fetchSettings();
   }, []);
   const [gameStarted, setGameStarted] = useState(false);
-  const [team1, setTeam1] = useState<TeamInfo | null>(null);
-  const [team2, setTeam2] = useState<TeamInfo | null>(null);
+  const [teams, setTeams] = useState<TeamInfo[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const handleStartGame = async (team1Name: string, team2Name: string) => {
+  const handleStartGame = async (teamNames: string[]) => {
     try {
-      const [team1, team2] = await Promise.all([
-        api.createTeam(team1Name),
-        api.createTeam(team2Name)
-      ]);
-      
-      setTeam1({
-        ...team1,
+      const createdTeams = await Promise.all(
+        teamNames.map(name => api.createTeam(name))
+      );
+
+      const teamsInfo = createdTeams.map(team => ({
+        ...team,
         score: 0,
+        id: team.id,
         currentPlayer: 1,
-        totalPlayers,
-        id: team1.id
-      });
-      setTeam2({
-        ...team2,
-        score: 0,
-        currentPlayer: 0,
-        totalPlayers,
-        id: team2.id
-      });
+      }));
+      console.log(teamsInfo);
+      setTeams(teamsInfo);
       setGameStarted(true);
     } catch (error) {
       console.error('Failed to create teams:', error);
@@ -58,8 +53,7 @@ function App() {
   };
 
   const handleRestartGame = () => {
-    setTeam1(null);
-    setTeam2(null);
+    setTeams([]);
     setGameStarted(false);
   };
 
@@ -77,18 +71,18 @@ function App() {
         <div className="w-full max-w-2xl h-full">
           <Routes>
             <Route path="/" element={
-              gameStarted ? (
+              gameStarted && teams.length > 0 ? (
                 <div className="bg-transparent rounded-2xl shadow-xl h-full">
                   <Game 
                     onRestart={handleRestartGame}
-                    team={team1!}
-                    opponentTeam={team2!}
+                    teams={teams}
+                    setTeams={setTeams}
                     totalPlayers={totalPlayers}
                     timerDuration={timerDuration}
                   />
                 </div>
               ) : (
-                <StartScreen onStart={handleStartGame} />
+                <StartScreen onStart={handleStartGame} numberOfTeams={numberOfTeams} />
               )
             } />
             <Route path="/admin" element={
@@ -99,6 +93,8 @@ function App() {
                   setTotalPlayers={setTotalPlayers}
                   timerDuration={timerDuration}
                   setTimerDuration={setTimerDuration}
+                  numberOfTeams={numberOfTeams}
+                  setNumberOfTeams={setNumberOfTeams}
                 />
               ) : <AdminLogin onLogin={handleAdminLogin} />
             } />

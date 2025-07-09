@@ -12,8 +12,8 @@ const PlayerIndicator: React.FC<PlayerIndicatorProps> = ({ currentPlayer, totalP
       <div className="flex space-x-2">
         {Array.from({ length: totalPlayers }, (_, index) => (
           <div 
-            key={index}
-            className={`w-3 h-3 rounded-full ${
+          key={index}
+          className={`w-3 h-3 rounded-full ${
               index < currentPlayer - 1 
                 ? 'bg-gray-400' 
                 : index === currentPlayer - 1 

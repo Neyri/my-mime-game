@@ -26,36 +26,6 @@ const teamsRef = db.ref('teams');
 // Firebase reference for game settings
 const settingsRef = db.ref('gameSettings');
 
-// Get game settings
-app.get('/api/game-settings', async (req, res) => {
-  try {
-    const snapshot = await settingsRef.once('value');
-    const settings = snapshot.val() || { totalPlayers: 6, timerDuration: 60 };
-    res.json(settings);
-  } catch (error) {
-    console.error('Error fetching game settings:', error);
-    res.status(500).json({ error: 'Failed to fetch game settings' });
-  }
-});
-
-// Update game settings
-app.put('/api/game-settings', async (req, res) => {
-  try {
-    const { totalPlayers, timerDuration } = req.body;
-    if (
-      typeof totalPlayers !== 'number' ||
-      typeof timerDuration !== 'number'
-    ) {
-      return res.status(400).json({ error: 'Invalid settings' });
-    }
-    await settingsRef.set({ totalPlayers, timerDuration });
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error updating game settings:', error);
-    res.status(500).json({ error: 'Failed to update game settings' });
-  }
-});
-
 // Admin middleware
 const isAdmin = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -64,6 +34,38 @@ const isAdmin = (req, res, next) => {
   }
   next();
 };
+
+// Get game settings
+app.get('/api/game-settings', async (req, res) => {
+  try {
+    const snapshot = await settingsRef.once('value');
+    const settings = snapshot.val();
+    const defaultSettings = { totalPlayers: 6, timerDuration: 60, numberOfTeams: 2 };
+    res.json({ ...defaultSettings, ...settings });
+  } catch (error) {
+    console.error('Error fetching game settings:', error);
+    res.status(500).json({ error: 'Failed to fetch game settings' });
+  }
+});
+
+// Update game settings
+app.put('/api/game-settings', isAdmin, async (req, res) => {
+  try {
+    const { totalPlayers, timerDuration, numberOfTeams } = req.body;
+    if (
+      typeof totalPlayers !== 'number' ||
+      typeof timerDuration !== 'number' ||
+      typeof numberOfTeams !== 'number'
+    ) {
+      return res.status(400).json({ error: 'Invalid settings' });
+    }
+    await settingsRef.set({ totalPlayers, timerDuration, numberOfTeams });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating game settings:', error);
+    res.status(500).json({ error: 'Failed to update game settings' });
+  }
+});
 
 // Routes
 app.get('/api/game-data', (req, res) => {
